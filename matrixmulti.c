@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/_pthread/_pthread_t.h>
 #include <unistd.h>
 
@@ -30,23 +31,30 @@ int main(int argc, char *argv[]) {
   // スレッドの管理変数
   pthread_t th[N];
   int i;
-  for (int j = 0; j < 1; j++) {
+  for (int j = 0; j < N; j++) {
     for (i = 0; i < N; i++) {
       int r;
-      int *columnPointer = left_matrix[j];
-      int raw[N] = {};
+      // int *columnPointer = left_matrix[j];
+      int *columnPointer = (int *)malloc(sizeof(int) * N);
+      for (int k = 0; k < N; k++) {
+        columnPointer[k] = left_matrix[j][k];
+      }
+      int *raw = (int *)malloc(sizeof(int) * N);
       for (int k = 0; k < N; k++) {
         raw[k] = right_matrix[k][i];
-        printf("%d\n", raw[k]);
       }
       printf("\n");
 
-      struct calculateLineArgs args = {columnPointer, raw,
-                                       &result_matrix[j][i]};
+      // struct calculateLineArgs args = {columnPointer, raw,
+      //                                  &result_matrix[j][i]};
+      struct calculateLineArgs *args = malloc(sizeof(struct calculateLineArgs));
+      args->columnPointer = columnPointer;
+      args->rawPointer = raw;
+      args->result = &result_matrix[j][i];
 
       // スレッドの管理変数, スレッドの属性, スレッドの関数,
       // スレッドの引数(汎用ポインタ(どんなポインタでも受け取れる))
-      r = pthread_create(&th[i], NULL, calculateLine, (void *)&args);
+      r = pthread_create(&th[i], NULL, calculateLine, (void *)args);
       if (r != 0)
         perror("new thread");
     }
@@ -74,18 +82,20 @@ void *calculateLine(void *arg) {
   int *result = args->result;
 
   // printf("(1,1) = %d\n", *(rawPointer[1] + 1));
+  printf("column");
+  for (int i = 0; i < N; i++) {
+    printf("%d,", columnPointer[i]);
+  }
+  printf("\n");
   for (int i = 0; i < N; i++) {
     printf("%d,\n", rawPointer[i]);
   }
-  printf("columnPointer\n");
-  for (int i = 0; i < N; i++) {
-    printf("%d", columnPointer[i]);
-  }
+
   printf("\n");
 
   *result = 0;
   for (int i = 0; i < N; i++) {
-    *result += *(columnPointer + 1) * (rawPointer[i]);
+    *result += *(columnPointer + i) * (rawPointer[i]);
   }
   pthread_exit(NULL);
 }
