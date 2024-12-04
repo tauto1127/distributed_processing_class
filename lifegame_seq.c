@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <pthread.h>
+#include <sys/sysinfo.h>
 
 #define NLOOP	(200)
 // グリッドN行
@@ -18,9 +19,10 @@
 typedef int Grid[N + 2][M + 2];
 
 struct thread_arg {
-	int i;
-	const Grid * pCur;
-	Grid * pNext;
+    int start_row;    // 開始行
+    int end_row;      // 終了行
+    const Grid *pCur;
+    Grid *pNext;
 };
 
 void computeAliveOrDead(int i, int j, const Grid * pCur, Grid * pNext)
@@ -63,44 +65,48 @@ void computeAliveOrDead(int i, int j, const Grid * pCur, Grid * pNext)
 		(*pNext)[i][j] = DEAD;
 }
 
-void *thread_func(void *arg){
-	int j;
-	struct thread_arg *targ = (struct thread_arg *)arg;
-
-	// 列ループ
-	for (j = 1; j <= N; ++j) {
-		computeAliveOrDead(targ->i, j, targ->pCur, targ->pNext);
-	}
-	pthread_exit(NULL);
+void *thread_func(void *arg) {
+    struct thread_arg *targ = (struct thread_arg *)arg;
+    int i, j;
+    
+    // 割り当てられたブロックの処理
+    for (i = targ->start_row; i < targ->end_row; i++) {
+        for (j = 1; j <= N; j++) {
+            computeAliveOrDead(i, j, targ->pCur, targ->pNext);
+        }
+    }
+    pthread_exit(NULL);
 }
 
-void computeNextGen(const Grid * pCur, Grid * pNext)
-{
-	int i, j;
-	pthread_t th[M];
-
-	// 行ループ
-	for (i = 1; i <= M; ++i) {
+void computeNextGen(const Grid *pCur, Grid *pNext) {
+    int num_threads = get_nprocs(); // CPUコア数を取得
+    pthread_t th[num_threads];
+    
+    int rows_per_thread = M / num_threads;
+    
+    for (int t = 0; t < num_threads; t++) {
 		struct thread_arg *targ = (struct thread_arg *)malloc(sizeof(struct thread_arg));
-		targ->i = i;
-		targ->pCur = pCur;
-		targ->pNext = pNext;
-			pthread_create(&th[i], NULL, thread_func, (void *)targ);
-	}
-	
-	for (i = 1; i <= N; ++i) {
-		pthread_join(th[i], NULL);
-	}
-}
 
+        targ->start_row = t * rows_per_thread + 1;
+        targ->end_row = (t == num_threads-1) ? M : (t+1) * rows_per_thread;
+        targ->pCur = pCur;
+        targ->pNext = pNext;
+        pthread_create(&th[t], NULL, thread_func, targ);
+    }
+    
+    for (int t = 0; t < num_threads; t++) {
+        pthread_join(th[t], NULL);
+    }
+}
+// - 列ごとに分散して計算する戦略．
 // 次の画面までの平均描画時間が5秒から2秒になった！
 // 6core
 // CPU使用率も50くらいから90くらいになった　
 // ベストは100%?
 // 
-// 列ごとに分散して計算する戦略．
-// データの整合性を保つために，一列間隔をあけて計算してる．
-// 間隔開ける意味はなかった気がするけど
+// - パソコンのスレッド一つ一つにある一定の領域を割り当てたら
+// 平均描画時間が一秒になった
+// CPU使用率も大体100%になった
 int main(int argc, char *argv[])
 {
 	static Grid g[2];
