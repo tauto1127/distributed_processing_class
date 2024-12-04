@@ -86,24 +86,11 @@ void computeNextGen(const Grid * pCur, Grid * pNext)
 		targ->i = i;
 		targ->pCur = pCur;
 		targ->pNext = pNext;
-		if(i % 2 == 0){
 			pthread_create(&th[i], NULL, thread_func, (void *)targ);
-		}
-		if(i % 2 == 1){
-			pthread_create(&th2[i], NULL, thread_func, (void *)targ);
-		}
 	}
 	
 	for (i = 1; i <= N; ++i) {
-		if(i % 2 == 0){
-			pthread_join(th[i], NULL);
-		}
-	}
-	
-	for (i = 1; i <= N; ++i) {
-		if(i % 2 == 1){
-			pthread_join(th2[i], NULL);
-		}
+		pthread_join(th[i], NULL);
 	}
 }
 
