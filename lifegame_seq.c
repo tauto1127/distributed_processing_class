@@ -62,7 +62,7 @@ void computeAliveOrDead(int i, int j, const Grid * pCur, Grid * pNext)
 	else
 		(*pNext)[i][j] = DEAD;
 }
-// int i, const Grid * pCur, Grid * pNext
+
 void *thread_func(void *arg){
 	int j;
 	struct thread_arg *targ = (struct thread_arg *)arg;
@@ -82,10 +82,6 @@ void computeNextGen(const Grid * pCur, Grid * pNext)
 
 	// 行ループ
 	for (i = 1; i <= N; ++i) {
-		// 列ループ
-		// for (j = 1; j <= M; ++j) {
-		// 	computeAliveOrDead(i, j, pCur, pNext);
-		// }
 		struct thread_arg *targ = (struct thread_arg *)malloc(sizeof(struct thread_arg));
 		targ->i = i;
 		targ->pCur = pCur;
@@ -113,7 +109,12 @@ void computeNextGen(const Grid * pCur, Grid * pNext)
 
 // 次の画面までの平均描画時間が5秒から2秒になった！
 // 6core
-// CPU使用率も20くらいから80くらいになった　
+// CPU使用率も50くらいから90くらいになった　
+// ベストは100%?
+// 
+// 列ごとに分散して計算する戦略．
+// データの整合性を保つために，一列間隔をあけて計算してる．
+// 間隔開ける意味はなかった気がするけど
 int main(int argc, char *argv[])
 {
 	static Grid g[2];
