@@ -18,6 +18,7 @@
 
 typedef int Grid[N + 2][M + 2];
 
+// スレッドのarg用の構造体
 struct thread_arg {
     int start_row;    // 開始行
     int end_row;      // 終了行
@@ -25,6 +26,7 @@ struct thread_arg {
     Grid *pNext;
 };
 
+// 与えられたセルの生死を計算する
 void computeAliveOrDead(int i, int j, const Grid * pCur, Grid * pNext)
 {
 	int count = 0;
@@ -65,6 +67,7 @@ void computeAliveOrDead(int i, int j, const Grid * pCur, Grid * pNext)
 		(*pNext)[i][j] = DEAD;
 }
 
+// 各スレッドに割り当てる関数
 void *thread_func(void *arg) {
     struct thread_arg *targ = (struct thread_arg *)arg;
     int i, j;
@@ -78,6 +81,7 @@ void *thread_func(void *arg) {
     pthread_exit(NULL);
 }
 
+// 次の世代を計算する
 void computeNextGen(const Grid *pCur, Grid *pNext) {
     int num_threads = get_nprocs(); // CPUコア数を取得
     pthread_t th[num_threads];
@@ -98,6 +102,7 @@ void computeNextGen(const Grid *pCur, Grid *pNext) {
         pthread_join(th[t], NULL);
     }
 }
+
 // - 列ごとに分散して計算する戦略．
 // 次の画面までの平均描画時間が5秒から2秒になった！
 // 6core
