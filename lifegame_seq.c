@@ -68,7 +68,7 @@ void *thread_func(void *arg){
 	struct thread_arg *targ = (struct thread_arg *)arg;
 
 	// 列ループ
-	for (j = 1; j <= M; ++j) {
+	for (j = 1; j <= N; ++j) {
 		computeAliveOrDead(targ->i, j, targ->pCur, targ->pNext);
 	}
 	pthread_exit(NULL);
@@ -77,11 +77,10 @@ void *thread_func(void *arg){
 void computeNextGen(const Grid * pCur, Grid * pNext)
 {
 	int i, j;
-	pthread_t th[N];
-	pthread_t th2[N];
+	pthread_t th[M];
 
 	// 行ループ
-	for (i = 1; i <= N; ++i) {
+	for (i = 1; i <= M; ++i) {
 		struct thread_arg *targ = (struct thread_arg *)malloc(sizeof(struct thread_arg));
 		targ->i = i;
 		targ->pCur = pCur;
