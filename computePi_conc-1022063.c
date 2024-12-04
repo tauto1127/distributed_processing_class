@@ -1,7 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/_pthread/_pthread_t.h>
+#include <pthread.h>
 static long num_rects = 2 * 1000 * 1000 * 1000;
 //static long num_rects = 2 * 1000 * 1000 ;
 void *calculate(void *arg);
