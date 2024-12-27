@@ -11,11 +11,13 @@ int check_and_set(unsigned int mat[], int n, int row, int col)
 {
 	int i, j, c = 0;
 
+	{
 	/* horizontal */
 	for (j = col - 1; j >= 0; j--) {
 		if (mat[j] & (1U << row)) {
 			return c;
 		}
+	}
 	}
 
 	/* obliquely upward */
@@ -73,7 +75,7 @@ int main(int argc, char *argv[])
 		mat[i] = 0U;
 
 	/* query */
-	#pragma omp parallel for reduction(+:count) private(i)
+	#pragma omp parallel for private(i) reduction(+:count)
 	for (i = n - 1; i >= 0; i--)
 		count += check_and_set(mat, n, i, 0);
 
