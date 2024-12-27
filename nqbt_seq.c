@@ -68,10 +68,12 @@ int main(int argc, char *argv[])
 	}
 
 	/* initialize */
+	#pragma omp parallel for private(i)
 	for (i = 0; i < n; i++)
 		mat[i] = 0U;
 
 	/* query */
+	#pragma omp parallel for reduction(+:count) private(i)
 	for (i = n - 1; i >= 0; i--)
 		count += check_and_set(mat, n, i, 0);
 
