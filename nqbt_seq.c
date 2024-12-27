@@ -42,7 +42,7 @@ int check_and_set(unsigned int mat[], int n, int row, int col)
     } else {
         /* set remain columns */
         unsigned int mat_copy[MAX_N];
-        #pragma omp parallel for reduction(+:c) private(i, mat_copy)
+        #pragma omp parallel for reduction(+:c) private(i, mat_copy)schedule(static)
         for (i = n - 1; i >= 0; i--) {
             memcpy(mat_copy, mat, sizeof(unsigned int) * MAX_N);
             c += check_and_set(mat_copy, n, i, col + 1);
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    #pragma omp parallel for reduction(+:count) private(i)
+    #pragma omp parallel for reduction(+:count) private(i) schedule(static)
     for (i = 0; i < n; i++) {
         unsigned int mat_copy[MAX_N] = {0};
         count += check_and_set(mat_copy, n, i, 0);
